@@ -3,7 +3,7 @@ profile = 'black'
 skip = ['env','env3.8','openly','simple_locations', 'typings']
 
 [tool.black]
-line-length = 180
+line-length = 119
 target-version = ['py38']
 include = '\.pyi?$'
 

@@ -1,0 +1,4 @@
+[flake8]
+exclude = env,venv
+ignore = W601,E501,W504,W503
+max-line-length = 119
