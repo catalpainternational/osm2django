@@ -101,7 +101,7 @@ class IndoorLine(OsmLine, Indoor):
     pass
 
 
-class Infrastucture(models.Model):
+class Infrastructure(models.Model):
 
     ele = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
@@ -111,15 +111,15 @@ class Infrastucture(models.Model):
     class Meta:
         abstract = True
 
-class InfrastucturePoint(OsmPoint, Infrastucture):
+class InfrastructurePoint(OsmPoint, Infrastructure):
     pass
 
 
-class InfrastuctureLine(OsmLine, Infrastucture):
+class InfrastructureLine(OsmLine, Infrastructure):
     pass
 
 
-class InfrastucturePolygon(OsmPolygon, Infrastucture):
+class InfrastructurePolygon(OsmPolygon, Infrastructure):
     pass
 
 
@@ -274,7 +274,7 @@ class TrafficPolygon(OsmPolygon, Traffic):
     pass
 
 
-class UnitTable(models.Model):
+class Unittable(models.Model):
 
     """
     Single table that can take any OSM object and any geometry.

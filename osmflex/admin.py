@@ -35,16 +35,16 @@ class IndoorPointAdmin(admin.ModelAdmin):
 class IndoorPolygonAdmin(admin.ModelAdmin):
     ...
 
-@admin.register(models.InfrastuctureLine)
-class InfrastuctureLineAdmin(admin.ModelAdmin):
+@admin.register(models.InfrastructureLine)
+class InfrastructureLineAdmin(admin.ModelAdmin):
     ...
 
-@admin.register(models.InfrastucturePoint)
-class InfrastucturePointAdmin(admin.ModelAdmin):
+@admin.register(models.InfrastructurePoint)
+class InfrastructurePointAdmin(admin.ModelAdmin):
     ...
 
-@admin.register(models.InfrastucturePolygon)
-class InfrastucturePolygonAdmin(admin.ModelAdmin):
+@admin.register(models.InfrastructurePolygon)
+class InfrastructurePolygonAdmin(admin.ModelAdmin):
     ...
 
 @admin.register(models.LandusePoint)
@@ -143,8 +143,8 @@ class TrafficPointAdmin(admin.ModelAdmin):
 class TrafficPolygonAdmin(admin.ModelAdmin):
     ...
 
-@admin.register(models.UnitTable)
-class UnitTableAdmin(admin.ModelAdmin):
+@admin.register(models.Unittable)
+class UnittableAdmin(admin.ModelAdmin):
     ...
 
 @admin.register(models.WaterLine)
