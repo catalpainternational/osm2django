@@ -1,160 +1,209 @@
-from django.contrib import admin
+from django.contrib.gis import admin
 from osmflex import models
 
 # Register your models here.
 
+
+class OsmFlexAdmin(admin.GISModelAdmin):
+    list_display = ("osm_id", "osm_type", "osm_subtype", "name")
+    list_filter = ("osm_type", "osm_subtype")
+
+
 @admin.register(models.AmenityLine)
-class AmenityLineAdmin(admin.ModelAdmin):
+class AmenityLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.AmenityPoint)
-class AmenityPointAdmin(admin.ModelAdmin):
+class AmenityPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.AmenityPolygon)
-class AmenityPolygonAdmin(admin.ModelAdmin):
+class AmenityPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.BuildingPoint)
-class BuildingPointAdmin(admin.ModelAdmin):
+class BuildingPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.BuildingPolygon)
-class BuildingPolygonAdmin(admin.ModelAdmin):
+class BuildingPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.IndoorLine)
-class IndoorLineAdmin(admin.ModelAdmin):
+class IndoorLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.IndoorPoint)
-class IndoorPointAdmin(admin.ModelAdmin):
+class IndoorPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.IndoorPolygon)
-class IndoorPolygonAdmin(admin.ModelAdmin):
+class IndoorPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.InfrastructureLine)
-class InfrastructureLineAdmin(admin.ModelAdmin):
+class InfrastructureLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.InfrastructurePoint)
-class InfrastructurePointAdmin(admin.ModelAdmin):
+class InfrastructurePointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.InfrastructurePolygon)
-class InfrastructurePolygonAdmin(admin.ModelAdmin):
+class InfrastructurePolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.LandusePoint)
-class LandusePointAdmin(admin.ModelAdmin):
+class LandusePointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.LandusePolygon)
-class LandusePolygonAdmin(admin.ModelAdmin):
+class LandusePolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.LeisurePoint)
-class LeisurePointAdmin(admin.ModelAdmin):
+class LeisurePointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.LeisurePolygon)
-class LeisurePolygonAdmin(admin.ModelAdmin):
+class LeisurePolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.NaturalLine)
-class NaturalLineAdmin(admin.ModelAdmin):
+class NaturalLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.NaturalPoint)
-class NaturalPointAdmin(admin.ModelAdmin):
+class NaturalPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.NaturalPolygon)
-class NaturalPolygonAdmin(admin.ModelAdmin):
+class NaturalPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PlaceLine)
-class PlaceLineAdmin(admin.ModelAdmin):
+class PlaceLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PlacePoint)
-class PlacePointAdmin(admin.ModelAdmin):
+class PlacePointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PlacePolygon)
-class PlacePolygonAdmin(admin.ModelAdmin):
+class PlacePolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PoiLine)
-class PoiLineAdmin(admin.ModelAdmin):
+class PoiLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PoiPoint)
-class PoiPointAdmin(admin.ModelAdmin):
+class PoiPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PoiPolygon)
-class PoiPolygonAdmin(admin.ModelAdmin):
+class PoiPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PublicTransportLine)
-class PublicTransportLineAdmin(admin.ModelAdmin):
+class PublicTransportLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PublicTransportPoint)
-class PublicTransportPointAdmin(admin.ModelAdmin):
+class PublicTransportPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.PublicTransportPolygon)
-class PublicTransportPolygonAdmin(admin.ModelAdmin):
+class PublicTransportPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.RoadLine)
-class RoadLineAdmin(admin.ModelAdmin):
+class RoadLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.RoadPoint)
-class RoadPointAdmin(admin.ModelAdmin):
+class RoadPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.RoadPolygon)
-class RoadPolygonAdmin(admin.ModelAdmin):
+class RoadPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.ShopPoint)
-class ShopPointAdmin(admin.ModelAdmin):
+class ShopPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.ShopPolygon)
-class ShopPolygonAdmin(admin.ModelAdmin):
+class ShopPolygonAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.TrafficLine)
-class TrafficLineAdmin(admin.ModelAdmin):
+class TrafficLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.TrafficPoint)
-class TrafficPointAdmin(admin.ModelAdmin):
+class TrafficPointAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.TrafficPolygon)
-class TrafficPolygonAdmin(admin.ModelAdmin):
+class TrafficPolygonAdmin(OsmFlexAdmin):
     ...
 
-@admin.register(models.Unittable)
-class UnittableAdmin(admin.ModelAdmin):
+
+@admin.register(models.Unitable)
+class UnitableAdmin(admin.GISModelAdmin):
     ...
+
 
 @admin.register(models.WaterLine)
-class WaterLineAdmin(admin.ModelAdmin):
+class WaterLineAdmin(OsmFlexAdmin):
     ...
+
 
 @admin.register(models.WaterPoint)
-class WaterPointAdmin(admin.ModelAdmin):
+class WaterPointAdmin(OsmFlexAdmin):
     ...
 
+
 @admin.register(models.WaterPolygon)
-class WaterPolygonAdmin(admin.ModelAdmin):
+class WaterPolygonAdmin(OsmFlexAdmin):
+    ...
+
+
+@admin.register(models.Tags)
+class TagsAdmin(admin.GISModelAdmin):
     ...

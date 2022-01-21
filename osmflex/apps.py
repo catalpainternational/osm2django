@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class OsmFlexConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'osmflex'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "osmflex"

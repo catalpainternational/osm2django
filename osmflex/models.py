@@ -1,8 +1,34 @@
-from ast import operator
-from unicodedata import name
 from django.contrib.gis.db import models
 
 # Create your models here.
+
+
+class OsmTagged(models.Manager):
+    def tagged(self):
+        """
+        Returns objects with their "tags" column appended
+        """
+        tags = Tags.objects.filter(osm_id=models.OuterRef("osm_id"))
+        return self.get_queryset().annotate(tags=models.Subquery(tags.values("tags")))
+
+
+class PgosmFlex(models.Model):
+    id = models.BigIntegerField(primary_key=True)
+    imported = models.DateTimeField()
+    osm_date = models.DateField()
+    default_date = models.BooleanField()
+    region = models.TextField()
+    pgosm_flex_version = models.TextField()
+    srid = models.TextField()
+    project_url = models.TextField()
+    osm2pgsql_version = models.TextField()
+    language = models.TextField()
+    osm2pgsql_mode = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = "osmflex_pgosm_flex"
+
 
 class Osm(models.Model):
 
@@ -11,21 +37,32 @@ class Osm(models.Model):
     osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
     name = models.CharField(max_length=1024, null=True, blank=True)
 
+    objects = OsmTagged()
+
+    def __str__(self):
+        return f"{self.name or self.osm_subtype or self.osm_type}({self.osm_id})"
+
     class Meta:
         abstract = True
+
 
 class OsmPoint(Osm):
     geom = models.PointField(srid=3857)
+
     class Meta:
         abstract = True
+
 
 class OsmLine(Osm):
     geom = models.LineStringField(srid=3857)
+
     class Meta:
         abstract = True
 
+
 class OsmPolygon(Osm):
     geom = models.MultiPolygonField(srid=3857)
+
     class Meta:
         abstract = True
 
@@ -42,6 +79,7 @@ class Amenity(models.Model):
     class Meta:
         abstract = True
 
+
 class WheelchairAccess(models.Model):
     wheelchair = models.CharField(max_length=128, null=True, blank=True)
     wheelchair_desc = models.CharField(max_length=128, null=True, blank=True)
@@ -49,20 +87,25 @@ class WheelchairAccess(models.Model):
     class Meta:
         abstract = True
 
+
 class AmenityPoint(OsmPoint, Amenity, WheelchairAccess):
     pass
+
 
 class AmenityLine(OsmLine, Amenity, WheelchairAccess):
     pass
 
+
 class AmenityPolygon(OsmPolygon, Amenity, WheelchairAccess):
     pass
+
 
 class Building(Amenity):
     """
     Building inherits from Amenity
     as it shares address + wheelchair stats
     """
+
     levels = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     operator = models.CharField(max_length=1024, null=True, blank=True)
@@ -74,8 +117,10 @@ class Building(Amenity):
 class BuildingPoint(OsmPoint, Building, WheelchairAccess):
     pass
 
-class BuildingPolygon(OsmPoint, Building, WheelchairAccess):
+
+class BuildingPolygon(OsmPolygon, Building, WheelchairAccess):
     pass
+
 
 class Indoor(models.Model):
     layer = models.IntegerField(null=True, blank=True)
@@ -91,11 +136,14 @@ class Indoor(models.Model):
     class Meta:
         abstract = True
 
+
 class IndoorPoint(OsmPoint, Indoor):
     pass
 
+
 class IndoorPolygon(OsmPolygon, Indoor):
     pass
+
 
 class IndoorLine(OsmLine, Indoor):
     pass
@@ -111,6 +159,7 @@ class Infrastructure(models.Model):
     class Meta:
         abstract = True
 
+
 class InfrastructurePoint(OsmPoint, Infrastructure):
     pass
 
@@ -124,9 +173,9 @@ class InfrastructurePolygon(OsmPolygon, Infrastructure):
 
 
 class Landuse(models.Model):
-
     class Meta:
         abstract = True
+
 
 class LandusePoint(OsmPoint, Landuse):
     pass
@@ -135,13 +184,15 @@ class LandusePoint(OsmPoint, Landuse):
 class LandusePolygon(OsmPolygon, Landuse):
     pass
 
-class Leisure(models.Model):
 
+class Leisure(models.Model):
     class Meta:
         abstract = True
 
+
 class LeisurePoint(OsmPoint, Leisure):
     pass
+
 
 class LeisurePolygon(OsmPolygon, Leisure):
     pass
@@ -154,6 +205,7 @@ class Natural(models.Model):
     class Meta:
         abstract = True
 
+
 class NaturalPoint(OsmPoint, Natural):
     pass
 
@@ -165,6 +217,7 @@ class NaturalLine(OsmLine, Natural):
 class NaturalPolygon(OsmPolygon, Natural):
     pass
 
+
 class Place(models.Model):
 
     boundary = models.CharField(max_length=1024, null=True, blank=True)
@@ -173,27 +226,38 @@ class Place(models.Model):
     class Meta:
         abstract = True
 
+
 class PlacePoint(OsmPoint, Place):
     pass
+
 
 class PlaceLine(OsmLine, Place):
     pass
 
+
 class PlacePolygon(OsmPolygon, Place):
-    member_ids = models.JSONField()
+    member_ids = models.JSONField(null=True, blank=True)
+
 
 class Poi(Amenity):
+    operator = models.CharField(max_length=1024, null=True, blank=True)
+
     class Meta:
         abstract = True
+
 
 class PoiPoint(OsmPoint, Poi):
     pass
 
+
 class PoiLine(OsmLine, Poi):
     pass
 
+
 class PoiPolygon(OsmPolygon, Poi):
+    member_ids = models.JSONField(null=True, blank=True)
     pass
+
 
 class PublicTransport(WheelchairAccess):
 
@@ -212,14 +276,18 @@ class PublicTransport(WheelchairAccess):
     class Meta:
         abstract = True
 
+
 class PublicTransportPoint(OsmPoint, PublicTransport):
     pass
+
 
 class PublicTransportLine(OsmLine, PublicTransport):
     pass
 
+
 class PublicTransportPolygon(OsmPolygon, PublicTransport):
     pass
+
 
 class Road(models.Model):
     ref = models.CharField(max_length=1024, null=True, blank=True)
@@ -229,6 +297,10 @@ class Road(models.Model):
     tunnel = models.CharField(max_length=1024, null=True, blank=True)
     bridge = models.CharField(max_length=1024, null=True, blank=True)
     access = models.CharField(max_length=1024, null=True, blank=True)
+    major = models.BooleanField(null=True, default=False)
+    route_foot = models.BooleanField(null=True, default=False)
+    route_cycle = models.BooleanField(null=True, default=False)
+    route_motor = models.BooleanField(null=True, default=False)
 
     class Meta:
         abstract = True
@@ -237,11 +309,18 @@ class Road(models.Model):
 class RoadPoint(OsmPoint, Road):
     pass
 
+
 class RoadLine(OsmLine, Road):
     pass
 
+
 class RoadPolygon(OsmPolygon, Road):
     pass
+
+
+class RoadMajor(OsmLine, Road):
+    pass
+
 
 class Shop(Amenity, WheelchairAccess):
 
@@ -253,28 +332,33 @@ class Shop(Amenity, WheelchairAccess):
     class Meta:
         abstract = True
 
+
 class ShopPoint(OsmPoint, Shop):
     pass
+
 
 class ShopPolygon(OsmPolygon, Shop):
     pass
 
-class Traffic(models.Model):
 
+class Traffic(models.Model):
     class Meta:
         abstract = True
+
 
 class TrafficPoint(OsmPoint, Traffic):
     pass
 
+
 class TrafficLine(OsmLine, Traffic):
     pass
+
 
 class TrafficPolygon(OsmPolygon, Traffic):
     pass
 
 
-class Unittable(models.Model):
+class Unitable(models.Model):
 
     """
     Single table that can take any OSM object and any geometry.
@@ -298,6 +382,10 @@ class Unittable(models.Model):
     tags = models.JSONField()
     geom = models.GeometryField(srid=3857)
 
+    def __str__(self):
+        return f"{self.osm_id}" + " " + ",".join([f"{k}={v}" for k, v in self.tags.items()])
+
+
 class Water(models.Model):
 
     layer = models.IntegerField()
@@ -308,11 +396,23 @@ class Water(models.Model):
     class Meta:
         abstract = True
 
+
 class WaterPoint(OsmPoint, Water):
     pass
+
 
 class WaterLine(OsmLine, Water):
     pass
 
+
 class WaterPolygon(OsmPolygon, Water):
     pass
+
+
+class Tags(models.Model):
+    geom_type = models.CharField(max_length=2, null=True, blank=True)
+    osm_id = models.BigIntegerField(primary_key=True)
+    tags = models.JSONField()
+
+    def __str__(self):
+        return f"{self.osm_id}" + " " + ",".join([f"{k}={v}" for k, v in self.tags.items()])
