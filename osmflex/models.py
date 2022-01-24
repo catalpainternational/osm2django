@@ -1,6 +1,110 @@
+import dataclasses
+from typing import Iterable, Optional, Union, List
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import WKBReader
+from .helpers import (
+    MajorRoadField,
+    OsmIdField,
+    OsmLineStringField,
+    OsmMultiPolygonField,
+    OsmNameField,
+    OsmPointField,
+    OsmSpeedField,
+    OsmSubtypeField,
+    OsmTagIntField,
+    OsmTypeField,
+    RouteCycleField,
+    RouteFootField,
+    RouteMotorField,
+)
+import osmium
 
-# Create your models here.
+wkbfab = osmium.geom.WKBFactory()
+wkbreader = WKBReader()
+from .helpers import OsmObject, OsmTagCharField
+
+
+def get_model(nwr: OsmObject) -> List["Osm"]:
+    """
+    From an OSM object, determine the appropriate models to
+    import data to
+    """
+
+    _amenity_types = ("amenity", "bench", "brewery")
+
+    _poi_types = ("building", "shop", "amenity", "leisure", "man_made", "tourism", "landuse", "natural", "historic")
+
+    _building_types = {"building", "building:part", "office", "door", "entrance"}
+
+    _place_types = ("place", "boundary", "admin_level")
+
+    _road_types = ("highway",)
+
+    _indoor = ("indoor", "door", "entrance")
+
+    _infra = ("aeroway", "amenity", "emergency", "highway", "man_made", "power", "utility")
+
+    tags = nwr.tags
+
+    if len(tags) == 1 and "created_by" in tags:
+        return []
+
+    if len(tags) == 1 and "source" in tags:
+        return []
+
+    models = []
+
+    if isinstance(nwr, osmium.osm.Node):
+        if any((tag in tags for tag in _amenity_types)):
+            models.append(AmenityPoint)
+        if any((tag in tags for tag in _place_types)):
+            models.append(PlacePoint)
+        if any((tag in tags for tag in _building_types)):
+            models.append(BuildingPoint)
+        if any((tag in tags for tag in _poi_types)):
+            models.append(PoiPoint)
+        if any((tag in tags for tag in _road_types)):
+            models.append(RoadPoint)
+        if any((tag in tags for tag in _indoor)):
+            models.append(IndoorPoint)
+        if any((tag in tags for tag in _infra)):
+            models.append(InfrastructurePoint)
+        if "shop" in tags:
+            models.append(ShopPoint)
+
+    if isinstance(nwr, osmium.osm.Way):
+        if any((tag in tags for tag in _amenity_types)):
+            models.append(AmenityLine)
+        if any((tag in tags for tag in _place_types)):
+            models.append(PlaceLine)
+        if any((tag in tags for tag in _poi_types)):
+            models.append(PoiLine)
+        if any((tag in tags for tag in _road_types)):
+            models.append(RoadLine)
+        if any((tag in tags for tag in _indoor)):
+            models.append(IndoorLine)
+        if any((tag in tags for tag in _infra)):
+            models.append(InfrastructureLine)
+
+    if isinstance(nwr, osmium.osm.Area):
+        if any((tag in tags for tag in _amenity_types)):
+            models.append(AmenityPolygon)
+        if any((tag in tags for tag in _place_types)):
+            models.append(PlacePolygon)
+        if any((tag in tags for tag in _building_types)):
+            models.append(BuildingPolygon)
+        if any((tag in tags for tag in _poi_types)):
+            models.append(PoiPolygon)
+        if any((tag in tags for tag in _road_types)):
+            models.append(RoadPolygon)
+        if any((tag in tags for tag in _indoor)):
+            models.append(IndoorPolygon)
+        if any((tag in tags for tag in _infra)):
+            models.append(InfrastructurePolygon)
+        if "shop" in tags:
+            models.append(ShopPolygon)
+
+    return models
 
 
 class OsmTagged(models.Manager):
@@ -13,7 +117,6 @@ class OsmTagged(models.Manager):
 
 
 class PgosmFlex(models.Model):
-    id = models.BigIntegerField(primary_key=True)
     imported = models.DateTimeField()
     osm_date = models.DateField()
     default_date = models.BooleanField()
@@ -32,36 +135,35 @@ class PgosmFlex(models.Model):
 
 class Osm(models.Model):
 
-    osm_id = models.BigIntegerField(null=True, blank=True)
-    osm_type = models.CharField(max_length=1024, null=True, blank=True)
-    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
-    name = models.CharField(max_length=1024, null=True, blank=True)
+    osm_id = OsmIdField(primary_key=True)
+    osm_type = OsmTypeField(max_length=1024, null=True, blank=True)
+    name = OsmNameField()
 
     objects = OsmTagged()
 
     def __str__(self):
-        return f"{self.name or self.osm_subtype or self.osm_type}({self.osm_id})"
+        return f"{self.name or getattr(self, 'osm_subtype', None) or self.osm_type}({self.osm_id})"
 
     class Meta:
         abstract = True
 
 
 class OsmPoint(Osm):
-    geom = models.PointField(srid=3857)
+    geom = OsmPointField()
 
     class Meta:
         abstract = True
 
 
 class OsmLine(Osm):
-    geom = models.LineStringField(srid=3857)
+    geom = OsmLineStringField()
 
     class Meta:
         abstract = True
 
 
 class OsmPolygon(Osm):
-    geom = models.MultiPolygonField(srid=3857)
+    geom = OsmMultiPolygonField()
 
     class Meta:
         abstract = True
@@ -69,24 +171,35 @@ class OsmPolygon(Osm):
 
 class Amenity(models.Model):
 
-    housenumber = models.CharField(max_length=128, null=True, blank=True)
-    street = models.CharField(max_length=128, null=True, blank=True)
-    city = models.CharField(max_length=128, null=True, blank=True)
-    state = models.CharField(max_length=128, null=True, blank=True)
-    postcode = models.CharField(max_length=128, null=True, blank=True)
+    housenumber = OsmTagCharField(tag="addr:housenumber")
+    street = OsmTagCharField(tag="addr:street")
+    city = OsmTagCharField(tag="addr:city")
+    state = OsmTagCharField(tag="addr:state")
+    postcode = OsmTagCharField(tag="addr:postcode")
+
     address = models.CharField(max_length=128, null=True, blank=True)
 
     class Meta:
         abstract = True
 
+    def save(self, *args, **kwargs):
+        address = f"{self.housenumber} {self.street}".strip()
+        for add_part in ["city", "state", "postcode"]:
+            add_text = getattr(self, add_part)
+            if not address:
+                address = add_text
+            elif add_text:
+                address = f"{address}, {add_text}"
+        self.address = address
+        super().save(*args, **kwargs)
+
 
 class WheelchairAccess(models.Model):
-    wheelchair = models.CharField(max_length=128, null=True, blank=True)
-    wheelchair_desc = models.CharField(max_length=128, null=True, blank=True)
+    wheelchair = OsmTagCharField(tag="wheelchair")
+    wheelchair_desc = OsmTagCharField(tag="wheelchair_desc")
 
     class Meta:
         abstract = True
-
 
 class AmenityPoint(OsmPoint, Amenity, WheelchairAccess):
     pass
@@ -109,6 +222,7 @@ class Building(Amenity):
     levels = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     operator = models.CharField(max_length=1024, null=True, blank=True)
+    osm_subtype = OsmSubtypeField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -123,19 +237,16 @@ class BuildingPolygon(OsmPolygon, Building, WheelchairAccess):
 
 
 class Indoor(models.Model):
-    layer = models.IntegerField(null=True, blank=True)
-    level = models.IntegerField(null=True, blank=True)
-    layer = models.TextField(null=True, blank=True)
-    level = models.TextField(null=True, blank=True)
-    room = models.TextField(null=True, blank=True)
-    entrance = models.TextField(null=True, blank=True)
-    door = models.TextField(null=True, blank=True)
-    capacity = models.TextField(null=True, blank=True)
-    highway = models.TextField(null=True, blank=True)
+    layer = OsmTagIntField(tag="layer")
+    level = OsmTagIntField(tag="level")
+    room = OsmTagCharField(tag="room")
+    entrance = OsmTagCharField(tag="entrance")
+    door = OsmTagCharField(tag="door")
+    capacity = OsmTagCharField(tag="capacity")
+    highway = OsmTagCharField(tag="highway")
 
     class Meta:
         abstract = True
-
 
 class IndoorPoint(OsmPoint, Indoor):
     pass
@@ -151,14 +262,14 @@ class IndoorLine(OsmLine, Indoor):
 
 class Infrastructure(models.Model):
 
-    ele = models.IntegerField(null=True, blank=True)
-    height = models.FloatField(null=True, blank=True)
-    operator = models.CharField(max_length=1024, null=True, blank=True)
-    material = models.CharField(max_length=1024, null=True, blank=True)
+    ele = OsmTagCharField(tag="ele")
+    height = OsmTagCharField(tag="height")
+    operator = OsmTagCharField(tag="operator")
+    material = OsmTagCharField(tag="material")
+    osm_subtype = OsmSubtypeField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
-
 
 class InfrastructurePoint(OsmPoint, Infrastructure):
     pass
@@ -200,11 +311,10 @@ class LeisurePolygon(OsmPolygon, Leisure):
 
 class Natural(models.Model):
 
-    ele = models.IntegerField(null=True, blank=True)
+    ele = OsmTagCharField("ele")
 
     class Meta:
         abstract = True
-
 
 class NaturalPoint(OsmPoint, Natural):
     pass
@@ -220,12 +330,11 @@ class NaturalPolygon(OsmPolygon, Natural):
 
 class Place(models.Model):
 
-    boundary = models.CharField(max_length=1024, null=True, blank=True)
-    admin_level = models.IntegerField(null=True, blank=True)
+    boundary = OsmTagCharField("boundary")
+    admin_level = OsmTagIntField("admin_level")
 
     class Meta:
         abstract = True
-
 
 class PlacePoint(OsmPoint, Place):
     pass
@@ -240,7 +349,8 @@ class PlacePolygon(OsmPolygon, Place):
 
 
 class Poi(Amenity):
-    operator = models.CharField(max_length=1024, null=True, blank=True)
+    operator = OsmTagCharField(tag="operator")
+    osm_subtype = OsmSubtypeField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -261,17 +371,18 @@ class PoiPolygon(OsmPolygon, Poi):
 
 class PublicTransport(WheelchairAccess):
 
-    public_transport = models.TextField(max_length=1024, null=True, blank=True)
-    layer = models.IntegerField(null=True, blank=True)
-    name = models.TextField(max_length=1024, null=True, blank=True)
-    ref = models.TextField(max_length=1024, null=True, blank=True)
-    operator = models.TextField(max_length=1024, null=True, blank=True)
-    network = models.TextField(max_length=1024, null=True, blank=True)
-    surface = models.TextField(max_length=1024, null=True, blank=True)
-    bus = models.TextField(max_length=1024, null=True, blank=True)
-    shelter = models.TextField(max_length=1024, null=True, blank=True)
-    bench = models.TextField(max_length=1024, null=True, blank=True)
-    lit = models.TextField(max_length=1024, null=True, blank=True)
+    public_transport = OsmTagCharField(tag="public_transport")
+    layer = OsmTagCharField(tag="layer")
+    name = OsmNameField()
+    ref = OsmTagCharField(tag="ref")
+    operator = OsmTagCharField(tag="operator")
+    network = OsmTagCharField(tag="network")
+    surface = OsmTagCharField(tag="surface")
+    bus = OsmTagCharField(tag="bus")
+    shelter = OsmTagCharField(tag="shelter")
+    bench = OsmTagCharField(tag="bench")
+    lit = OsmTagCharField(tag="lit")
+    osm_subtype = OsmSubtypeField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -290,17 +401,12 @@ class PublicTransportPolygon(OsmPolygon, PublicTransport):
 
 
 class Road(models.Model):
-    ref = models.CharField(max_length=1024, null=True, blank=True)
-    maxspeed = models.IntegerField(null=True, blank=True)
-    oneway = models.IntegerField(null=True, blank=True)
-    layer = models.CharField(max_length=1024, null=True, blank=True)
-    tunnel = models.CharField(max_length=1024, null=True, blank=True)
-    bridge = models.CharField(max_length=1024, null=True, blank=True)
-    access = models.CharField(max_length=1024, null=True, blank=True)
-    major = models.BooleanField(null=True, default=False)
-    route_foot = models.BooleanField(null=True, default=False)
-    route_cycle = models.BooleanField(null=True, default=False)
-    route_motor = models.BooleanField(null=True, default=False)
+    ref = OsmTagCharField(tag="ref")
+    maxspeed = OsmSpeedField(null=True, blank=True)
+    layer = OsmTagCharField(tag="layer")
+    tunnel = OsmTagCharField(tag="tunnel")
+    bridge = OsmTagCharField(tag="bridge")
+    access = OsmTagCharField(tag="access")
 
     class Meta:
         abstract = True
@@ -311,11 +417,17 @@ class RoadPoint(OsmPoint, Road):
 
 
 class RoadLine(OsmLine, Road):
-    pass
-
+    oneway = OsmTagCharField(tag="oneway")
+    major = MajorRoadField(null=True, default=False)
+    route_foot = RouteFootField(null=True, default=False)
+    route_cycle = RouteCycleField(null=True, default=False)
+    route_motor = RouteMotorField(null=True, default=False)
 
 class RoadPolygon(OsmPolygon, Road):
-    pass
+    major = MajorRoadField(null=True, default=False)
+    route_foot = RouteFootField(null=True, default=False)
+    route_cycle = RouteCycleField(null=True, default=False)
+    route_motor = RouteMotorField(null=True, default=False)
 
 
 class RoadMajor(OsmLine, Road):
@@ -324,10 +436,11 @@ class RoadMajor(OsmLine, Road):
 
 class Shop(Amenity, WheelchairAccess):
 
-    operator = models.CharField(max_length=1024, null=True, blank=True)
-    brand = models.CharField(max_length=1024, null=True, blank=True)
-    website = models.CharField(max_length=1024, null=True, blank=True)
-    phone = models.CharField(max_length=1024, null=True, blank=True)
+    operator = OsmTagCharField(tag="operator")
+    brand = OsmTagCharField(tag="brand")
+    website = OsmTagCharField(tag="website")
+    phone = OsmTagCharField(tag="phone")
+    osm_subtype = OsmSubtypeField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -342,19 +455,24 @@ class ShopPolygon(OsmPolygon, Shop):
 
 
 class Traffic(models.Model):
+    osm_subtype = OsmSubtypeField(max_length=1024, null=True, blank=True)
+
     class Meta:
         abstract = True
 
 
 class TrafficPoint(OsmPoint, Traffic):
+    name = None
     pass
 
 
 class TrafficLine(OsmLine, Traffic):
+    name = None
     pass
 
 
 class TrafficPolygon(OsmPolygon, Traffic):
+    name = None
     pass
 
 
@@ -377,6 +495,8 @@ class Unitable(models.Model):
 
     """
 
+    # ALTER TABLE osmflex_unitable ADD COLUMN id bigint GENERATED BY DEFAULT AS IDENTITY;
+    id = models.BigIntegerField(primary_key=True)
     osm_id = models.BigIntegerField()
     geom_type = models.CharField(max_length=5, null=True, blank=True)  # N(ode), W(way), R(relation)
     tags = models.JSONField()
@@ -388,10 +508,11 @@ class Unitable(models.Model):
 
 class Water(models.Model):
 
-    layer = models.IntegerField()
-    tunnel = models.CharField(max_length=1024, null=True, blank=True)
-    bridge = models.CharField(max_length=1024, null=True, blank=True)
-    boat = models.CharField(max_length=1024, null=True, blank=True)
+    layer = OsmTagIntField(tag="layer")
+    tunnel = OsmTagCharField(tag="tunnel")
+    bridge = OsmTagCharField(tag="bridge")
+    boat = OsmTagCharField(tag="boat")
+    osm_subtype = OsmSubtypeField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True

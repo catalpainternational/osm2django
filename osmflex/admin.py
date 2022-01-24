@@ -5,8 +5,15 @@ from osmflex import models
 
 
 class OsmFlexAdmin(admin.GISModelAdmin):
-    list_display = ("osm_id", "osm_type", "osm_subtype", "name")
-    list_filter = ("osm_type", "osm_subtype")
+    def get_list_filter(self, request):
+        fields = [n.name for n in self.model._meta.fields]
+        list_filters = ["osm_type", "osm_subtype"]
+        return [f for f in list_filters if f in fields]
+
+    def get_list_display(self, request):
+        list_display = ("osm_id", "osm_type", "osm_subtype", "name")
+        fields = [n.name for n in self.model._meta.fields]
+        return [f for f in list_display if f in fields]
 
 
 @admin.register(models.AmenityLine)
