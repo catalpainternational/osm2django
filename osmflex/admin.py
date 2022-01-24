@@ -5,9 +5,12 @@ from osmflex import models
 
 
 class OsmFlexAdmin(admin.GISModelAdmin):
+    list_display = ("osm_id", "osm_type", "name")
+    list_filter = ("osm_type",)
+
+class OsmWithSubtypeAdmin(admin.GISModelAdmin):
     list_display = ("osm_id", "osm_type", "osm_subtype", "name")
     list_filter = ("osm_type", "osm_subtype")
-
 
 @admin.register(models.AmenityLine)
 class AmenityLineAdmin(OsmFlexAdmin):
@@ -50,17 +53,17 @@ class IndoorPolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.InfrastructureLine)
-class InfrastructureLineAdmin(OsmFlexAdmin):
+class InfrastructureLineAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.InfrastructurePoint)
-class InfrastructurePointAdmin(OsmFlexAdmin):
+class InfrastructurePointAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.InfrastructurePolygon)
-class InfrastructurePolygonAdmin(OsmFlexAdmin):
+class InfrastructurePolygonAdmin(OsmWithSubtypeAdmin):
     ...
 
 
@@ -115,32 +118,32 @@ class PlacePolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.PoiLine)
-class PoiLineAdmin(OsmFlexAdmin):
+class PoiLineAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.PoiPoint)
-class PoiPointAdmin(OsmFlexAdmin):
+class PoiPointAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.PoiPolygon)
-class PoiPolygonAdmin(OsmFlexAdmin):
+class PoiPolygonAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.PublicTransportLine)
-class PublicTransportLineAdmin(OsmFlexAdmin):
+class PublicTransportLineAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.PublicTransportPoint)
-class PublicTransportPointAdmin(OsmFlexAdmin):
+class PublicTransportPointAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.PublicTransportPolygon)
-class PublicTransportPolygonAdmin(OsmFlexAdmin):
+class PublicTransportPolygonAdmin(OsmWithSubtypeAdmin):
     ...
 
 
@@ -160,27 +163,27 @@ class RoadPolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.ShopPoint)
-class ShopPointAdmin(OsmFlexAdmin):
+class ShopPointAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.ShopPolygon)
-class ShopPolygonAdmin(OsmFlexAdmin):
+class ShopPolygonAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.TrafficLine)
-class TrafficLineAdmin(OsmFlexAdmin):
+class TrafficLineAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.TrafficPoint)
-class TrafficPointAdmin(OsmFlexAdmin):
+class TrafficPointAdmin(OsmWithSubtypeAdmin):
     ...
 
 
 @admin.register(models.TrafficPolygon)
-class TrafficPolygonAdmin(OsmFlexAdmin):
+class TrafficPolygonAdmin(OsmWithSubtypeAdmin):
     ...
 
 

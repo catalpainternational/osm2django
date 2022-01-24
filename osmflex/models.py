@@ -32,9 +32,8 @@ class PgosmFlex(models.Model):
 
 class Osm(models.Model):
 
-    osm_id = models.BigIntegerField(null=True, blank=True)
+    osm_id = models.BigIntegerField(primary_key=True)
     osm_type = models.CharField(max_length=1024, null=True, blank=True)
-    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
     name = models.CharField(max_length=1024, null=True, blank=True)
 
     objects = OsmTagged()
@@ -109,6 +108,7 @@ class Building(Amenity):
     levels = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     operator = models.CharField(max_length=1024, null=True, blank=True)
+    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -155,6 +155,7 @@ class Infrastructure(models.Model):
     height = models.FloatField(null=True, blank=True)
     operator = models.CharField(max_length=1024, null=True, blank=True)
     material = models.CharField(max_length=1024, null=True, blank=True)
+    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -241,6 +242,7 @@ class PlacePolygon(OsmPolygon, Place):
 
 class Poi(Amenity):
     operator = models.CharField(max_length=1024, null=True, blank=True)
+    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -272,6 +274,7 @@ class PublicTransport(WheelchairAccess):
     shelter = models.TextField(max_length=1024, null=True, blank=True)
     bench = models.TextField(max_length=1024, null=True, blank=True)
     lit = models.TextField(max_length=1024, null=True, blank=True)
+    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -328,6 +331,7 @@ class Shop(Amenity, WheelchairAccess):
     brand = models.CharField(max_length=1024, null=True, blank=True)
     website = models.CharField(max_length=1024, null=True, blank=True)
     phone = models.CharField(max_length=1024, null=True, blank=True)
+    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -342,6 +346,7 @@ class ShopPolygon(OsmPolygon, Shop):
 
 
 class Traffic(models.Model):
+    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
     class Meta:
         abstract = True
 
@@ -392,6 +397,7 @@ class Water(models.Model):
     tunnel = models.CharField(max_length=1024, null=True, blank=True)
     bridge = models.CharField(max_length=1024, null=True, blank=True)
     boat = models.CharField(max_length=1024, null=True, blank=True)
+    osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
 
     class Meta:
         abstract = True
