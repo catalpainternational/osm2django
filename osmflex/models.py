@@ -1,4 +1,7 @@
 from django.contrib.gis.db import models
+from django.db import connection
+
+from osmflex.utils import upsert_sql
 
 # Create your models here.
 
@@ -39,10 +42,46 @@ class Osm(models.Model):
     objects = OsmTagged()
 
     def __str__(self):
-        return f"{self.name or self.osm_subtype or self.osm_type}({self.osm_id})"
+        return f"{self.name or getattr(self, 'osm_subtype', None) or self.osm_type}({self.osm_id})"
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def update_from_flex(cls):
+        """
+        Merge updated information (ie a table dump) from
+        rustprooflabs' excellent import schema
+        """
+        statement = upsert_sql(cls)
+
+        with connection.cursor() as c:
+            c.execute(statement)
+
+    @classmethod
+    def update_all_from_flex(cls):
+        """
+        Recursively run `update_from_flex` for this class and all
+        subclasses. This executes an "upsert" from the parallel tables in
+        the "osm" schema.
+        """
+
+        def get_all_subclasses(cls):
+            subs = set()
+            for sc in cls.__subclasses__():  # type: models.Model
+                if not sc._meta.abstract:
+                    subs.add(sc)
+                subs.update(get_all_subclasses(sc))
+            return subs
+
+        for sc in get_all_subclasses(cls):
+            try:
+                print(sc)
+                print(sc.objects.count())
+                sc.update_from_flex()
+                print(sc.objects.count())
+            except Exception as E:
+                print(E)
 
 
 class OsmPoint(Osm):
@@ -68,20 +107,20 @@ class OsmPolygon(Osm):
 
 class Amenity(models.Model):
 
-    housenumber = models.CharField(max_length=128, null=True, blank=True)
-    street = models.CharField(max_length=128, null=True, blank=True)
-    city = models.CharField(max_length=128, null=True, blank=True)
-    state = models.CharField(max_length=128, null=True, blank=True)
-    postcode = models.CharField(max_length=128, null=True, blank=True)
-    address = models.CharField(max_length=128, null=True, blank=True)
+    housenumber = models.CharField(max_length=512, null=True, blank=True)
+    street = models.CharField(max_length=512, null=True, blank=True)
+    city = models.CharField(max_length=512, null=True, blank=True)
+    state = models.CharField(max_length=512, null=True, blank=True)
+    postcode = models.CharField(max_length=512, null=True, blank=True)
+    address = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         abstract = True
 
 
 class WheelchairAccess(models.Model):
-    wheelchair = models.CharField(max_length=128, null=True, blank=True)
-    wheelchair_desc = models.CharField(max_length=128, null=True, blank=True)
+    wheelchair = models.CharField(max_length=512, null=True, blank=True)
+    wheelchair_desc = models.CharField(max_length=512, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -123,8 +162,6 @@ class BuildingPolygon(OsmPolygon, Building, WheelchairAccess):
 
 
 class Indoor(models.Model):
-    layer = models.IntegerField(null=True, blank=True)
-    level = models.IntegerField(null=True, blank=True)
     layer = models.TextField(null=True, blank=True)
     level = models.TextField(null=True, blank=True)
     room = models.TextField(null=True, blank=True)
@@ -265,7 +302,6 @@ class PublicTransport(WheelchairAccess):
 
     public_transport = models.TextField(max_length=1024, null=True, blank=True)
     layer = models.IntegerField(null=True, blank=True)
-    name = models.TextField(max_length=1024, null=True, blank=True)
     ref = models.TextField(max_length=1024, null=True, blank=True)
     operator = models.TextField(max_length=1024, null=True, blank=True)
     network = models.TextField(max_length=1024, null=True, blank=True)
@@ -295,34 +331,39 @@ class PublicTransportPolygon(OsmPolygon, PublicTransport):
 class Road(models.Model):
     ref = models.CharField(max_length=1024, null=True, blank=True)
     maxspeed = models.IntegerField(null=True, blank=True)
-    oneway = models.IntegerField(null=True, blank=True)
     layer = models.CharField(max_length=1024, null=True, blank=True)
     tunnel = models.CharField(max_length=1024, null=True, blank=True)
     bridge = models.CharField(max_length=1024, null=True, blank=True)
-    access = models.CharField(max_length=1024, null=True, blank=True)
-    major = models.BooleanField(null=True, default=False)
-    route_foot = models.BooleanField(null=True, default=False)
-    route_cycle = models.BooleanField(null=True, default=False)
-    route_motor = models.BooleanField(null=True, default=False)
 
     class Meta:
         abstract = True
 
 
 class RoadPoint(OsmPoint, Road):
-    pass
+    oneway = models.IntegerField(null=True, blank=True)
+    access = models.CharField(max_length=1024, null=True, blank=True)
 
 
 class RoadLine(OsmLine, Road):
-    pass
+    major = models.BooleanField(null=True, default=False)
+    route_foot = models.BooleanField(null=True, default=False)
+    route_cycle = models.BooleanField(null=True, default=False)
+    route_motor = models.BooleanField(null=True, default=False)
+    oneway = models.IntegerField(null=True, blank=True)
+    access = models.CharField(max_length=1024, null=True, blank=True)
 
 
 class RoadPolygon(OsmPolygon, Road):
-    pass
+    major = models.BooleanField(null=True, default=False)
+    route_foot = models.BooleanField(null=True, default=False)
+    route_cycle = models.BooleanField(null=True, default=False)
+    route_motor = models.BooleanField(null=True, default=False)
+    oneway = models.IntegerField(null=True, blank=True)
+    access = models.CharField(max_length=1024, null=True, blank=True)
 
 
 class RoadMajor(OsmLine, Road):
-    pass
+    major = models.BooleanField(null=True, default=False)
 
 
 class Shop(Amenity, WheelchairAccess):
@@ -347,20 +388,21 @@ class ShopPolygon(OsmPolygon, Shop):
 
 class Traffic(models.Model):
     osm_subtype = models.CharField(max_length=1024, null=True, blank=True)
+
     class Meta:
         abstract = True
 
 
 class TrafficPoint(OsmPoint, Traffic):
-    pass
+    name = None  # type: ignore
 
 
 class TrafficLine(OsmLine, Traffic):
-    pass
+    name = None  # type: ignore
 
 
 class TrafficPolygon(OsmPolygon, Traffic):
-    pass
+    name = None  # type: ignore
 
 
 class Unitable(models.Model):
@@ -382,6 +424,8 @@ class Unitable(models.Model):
 
     """
 
+    # Note that post import the "id" field will be missing
+    # Resstore with  ALTER TABLE osmflex_unitable ADD COLUMN id bigint GENERATED BY DEFAULT AS IDENTITY;
     osm_id = models.BigIntegerField()
     geom_type = models.CharField(max_length=5, null=True, blank=True)  # N(ode), W(way), R(relation)
     tags = models.JSONField()

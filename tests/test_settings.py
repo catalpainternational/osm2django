@@ -9,11 +9,12 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from typing import List
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-f_bccd*huje&4i(pip=vljq)ogt#l@5td2y!(m)pk!5($!!&vp"
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = []  # type: List[str]
 
 
 # Application definition
@@ -122,7 +123,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 BOUNDARIES_API_KEY = "9621eb9d61d9727a2cc47493e8f3e740"  # Josh's openstreetmap key for boundaries
 
 try:
-    import rich
+    import rich  # type: ignore
 except (ImportError, ModuleNotFoundError):
     rich = None
 

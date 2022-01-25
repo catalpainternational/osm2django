@@ -1,16 +1,39 @@
 from django.contrib.gis import admin
+from django.http import HttpRequest
+
 from osmflex import models
 
 # Register your models here.
 
 
-class OsmFlexAdmin(admin.GISModelAdmin):
+class OsmFlexAdmin(admin.GISModelAdmin):  # type: ignore
+    search_fields = ("name",)
     list_display = ("osm_id", "osm_type", "name")
     list_filter = ("osm_type",)
 
-class OsmWithSubtypeAdmin(admin.GISModelAdmin):
-    list_display = ("osm_id", "osm_type", "osm_subtype", "name")
-    list_filter = ("osm_type", "osm_subtype")
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_delete_permission(self, *args, **kwargs) -> bool:
+        return False
+
+    def get_readonly_fields(self, *args, **kwargs):
+        fields = [n.name for n in self.model._meta.fields]
+        fields.remove("geom")  # Without this the map in the admin does not show
+        return fields
+
+    def get_list_display(self, *args, **kwargs):
+        list_display = ["osm_id", "osm_type", "name"]
+        if "osm_subtype" in [n.name for n in self.model._meta.fields]:
+            list_display.append("osm_subtype")
+        return list_display
+
+    def get_list_filter(self, *args, **kwargs):
+        list_filter = ["osm_type"]
+        if "osm_subtype" in [n.name for n in self.model._meta.fields]:
+            list_filter.append("osm_subtype")
+        return list_filter
+
 
 @admin.register(models.AmenityLine)
 class AmenityLineAdmin(OsmFlexAdmin):
@@ -53,17 +76,17 @@ class IndoorPolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.InfrastructureLine)
-class InfrastructureLineAdmin(OsmWithSubtypeAdmin):
+class InfrastructureLineAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.InfrastructurePoint)
-class InfrastructurePointAdmin(OsmWithSubtypeAdmin):
+class InfrastructurePointAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.InfrastructurePolygon)
-class InfrastructurePolygonAdmin(OsmWithSubtypeAdmin):
+class InfrastructurePolygonAdmin(OsmFlexAdmin):
     ...
 
 
@@ -118,32 +141,32 @@ class PlacePolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.PoiLine)
-class PoiLineAdmin(OsmWithSubtypeAdmin):
+class PoiLineAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.PoiPoint)
-class PoiPointAdmin(OsmWithSubtypeAdmin):
+class PoiPointAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.PoiPolygon)
-class PoiPolygonAdmin(OsmWithSubtypeAdmin):
+class PoiPolygonAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.PublicTransportLine)
-class PublicTransportLineAdmin(OsmWithSubtypeAdmin):
+class PublicTransportLineAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.PublicTransportPoint)
-class PublicTransportPointAdmin(OsmWithSubtypeAdmin):
+class PublicTransportPointAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.PublicTransportPolygon)
-class PublicTransportPolygonAdmin(OsmWithSubtypeAdmin):
+class PublicTransportPolygonAdmin(OsmFlexAdmin):
     ...
 
 
@@ -163,32 +186,32 @@ class RoadPolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.ShopPoint)
-class ShopPointAdmin(OsmWithSubtypeAdmin):
+class ShopPointAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.ShopPolygon)
-class ShopPolygonAdmin(OsmWithSubtypeAdmin):
+class ShopPolygonAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.TrafficLine)
-class TrafficLineAdmin(OsmWithSubtypeAdmin):
+class TrafficLineAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.TrafficPoint)
-class TrafficPointAdmin(OsmWithSubtypeAdmin):
+class TrafficPointAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.TrafficPolygon)
-class TrafficPolygonAdmin(OsmWithSubtypeAdmin):
+class TrafficPolygonAdmin(OsmFlexAdmin):
     ...
 
 
 @admin.register(models.Unitable)
-class UnitableAdmin(admin.GISModelAdmin):
+class UnitableAdmin(admin.GISModelAdmin):  # type: ignore
     ...
 
 
@@ -208,5 +231,5 @@ class WaterPolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.Tags)
-class TagsAdmin(admin.GISModelAdmin):
+class TagsAdmin(admin.ModelAdmin):
     ...
