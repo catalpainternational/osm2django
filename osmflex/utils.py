@@ -1,8 +1,19 @@
+from typing import List
+
 from django.db import models
 from psycopg2 import sql
 
 
-def upsert_sql(model: models.Model):
+def truncate_sql(model: models.Model):
+    """
+    SQL to truncate this table
+    BE CAREFUL!
+    """
+    statement = sql.SQL("TRUNCATE {table} CASCADE;").format(table=sql.Identifier(model._meta.db_table))
+    return statement
+
+
+def upsert_sql(model: models.Model, exclude_fields: List[str] = None):
     """
     Generates an UPSERT (update-on-conflict) statement
     to import from the "osm" schema which is the default
@@ -11,7 +22,12 @@ def upsert_sql(model: models.Model):
 
     table = sql.Identifier(model._meta.db_table)
     field_names = [f.db_column or f.get_attname() for f in model._meta.fields]
-    fields = sql.SQL(",").join([sql.Identifier(f.db_column or f.get_attname()) for f in model._meta.fields])
+
+    for ex in exclude_fields or []:
+        if ex in field_names:
+            field_names.remove(ex)
+
+    fields = sql.SQL(",").join([sql.Identifier(f) for f in field_names])
 
     # TODO: Address source tables with additional '_' in them (power I think?)
     source_table = sql.Identifier(

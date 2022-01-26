@@ -1,8 +1,11 @@
+import logging
+
 from django.contrib.gis.db import models
 from django.db import connection
 
-from osmflex.utils import upsert_sql
+from osmflex.utils import truncate_sql, upsert_sql
 
+logger = logging.getLogger(__name__)
 # Create your models here.
 
 
@@ -48,7 +51,7 @@ class Osm(models.Model):
         abstract = True
 
     @classmethod
-    def update_from_flex(cls):
+    def update_from_flex(cls, truncate: bool = False):
         """
         Merge updated information (ie a table dump) from
         rustprooflabs' excellent import schema
@@ -56,10 +59,12 @@ class Osm(models.Model):
         statement = upsert_sql(cls)
 
         with connection.cursor() as c:
+            if truncate:
+                c.execute(truncate_sql(cls))
             c.execute(statement)
 
     @classmethod
-    def update_all_from_flex(cls):
+    def update_all_from_flex(cls, truncate: bool = False):
         """
         Recursively run `update_from_flex` for this class and all
         subclasses. This executes an "upsert" from the parallel tables in
@@ -76,10 +81,10 @@ class Osm(models.Model):
 
         for sc in get_all_subclasses(cls):
             try:
-                print(sc)
-                print(sc.objects.count())
-                sc.update_from_flex()
-                print(sc.objects.count())
+                logger.info("Updating %s", sc)
+                logger.info("Before update: %s items", sc.objects.count())
+                sc.update_from_flex(truncate=truncate)
+                logger.info("Post update: %s items", sc.objects.count())
             except Exception as E:
                 print(E)
 
@@ -433,6 +438,17 @@ class Unitable(models.Model):
 
     def __str__(self):
         return f"{self.osm_id}" + " " + ",".join([f"{k}={v}" for k, v in self.tags.items()])
+
+    @classmethod
+    def update_from_flex(cls):
+        """
+        Merge updated information (ie a table dump) from
+        rustprooflabs' excellent import schema
+        """
+        statement = upsert_sql(cls, exclude_fields=["id"])
+
+        with connection.cursor() as c:
+            c.execute(statement)
 
 
 class Water(models.Model):
