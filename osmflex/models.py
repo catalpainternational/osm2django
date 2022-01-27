@@ -56,11 +56,11 @@ class Osm(models.Model):
         Merge updated information (ie a table dump) from
         rustprooflabs' excellent import schema
         """
-        statement = upsert_sql(cls)
+        statement = upsert_sql(cls)  # type: ignore
 
         with connection.cursor() as c:
             if truncate:
-                c.execute(truncate_sql(cls))
+                c.execute(truncate_sql(cls))  # type: ignore
             c.execute(statement)
 
     @classmethod
@@ -363,7 +363,6 @@ class RoadPolygon(OsmPolygon, Road):
     route_foot = models.BooleanField(null=True, default=False)
     route_cycle = models.BooleanField(null=True, default=False)
     route_motor = models.BooleanField(null=True, default=False)
-    oneway = models.IntegerField(null=True, blank=True)
     access = models.CharField(max_length=1024, null=True, blank=True)
 
 
