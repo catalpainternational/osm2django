@@ -29,7 +29,6 @@ def upsert_sql(model: models.Model, exclude_fields: List[str] = None):
 
     fields = sql.SQL(",").join([sql.Identifier(f) for f in field_names])
 
-    # TODO: Address source tables with additional '_' in them (power I think?)
     source_table = sql.Identifier(
         model._meta.db_table.replace("osmflex_", "")
         .replace("point", "_point")

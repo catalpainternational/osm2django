@@ -1,13 +1,13 @@
 import os
 import subprocess
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
 
-def get_import_command(osmfile: str) -> tuple[List[str], dict]:
+def get_import_command(osmfile: str) -> Tuple[List[str], Dict]:
     """
     Returns a command string and env vars for `osm2pgsql`
     """
@@ -55,4 +55,7 @@ class Command(BaseCommand):
         args, env = get_import_command(options["osmfile"])
         # The list version of subprocess.run does not work with osm2pgsql
         # hence the join
+
+        self.stdout.write(f"Running Import of {options['osmfile']}")
         subprocess.run((" ").join(args), env={**env}, shell=True)
+        self.stdout.write(self.style.SUCCESS(f"Running Import of {options['osmfile']} complete"))

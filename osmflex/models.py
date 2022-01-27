@@ -1,4 +1,5 @@
 import logging
+from typing import Generator
 
 from django.contrib.gis.db import models
 from django.db import connection
@@ -51,23 +52,9 @@ class Osm(models.Model):
         abstract = True
 
     @classmethod
-    def update_from_flex(cls, truncate: bool = False):
+    def update_all_from_flex(cls, truncate: bool = False) -> Generator[str, None, None]:
         """
-        Merge updated information (ie a table dump) from
-        rustprooflabs' excellent import schema
-        """
-        statement = upsert_sql(cls)  # type: ignore
-
-        with connection.cursor() as c:
-            if truncate:
-                c.execute(truncate_sql(cls))  # type: ignore
-            c.execute(statement)
-
-    @classmethod
-    def update_all_from_flex(cls, truncate: bool = False):
-        """
-        Recursively run `update_from_flex` for this class and all
-        subclasses. This executes an "upsert" from the parallel tables in
+        Generate import SQL for all tables. This executes an "upsert" from the parallel tables in
         the "osm" schema.
         """
 
@@ -80,11 +67,11 @@ class Osm(models.Model):
             return subs
 
         for sc in get_all_subclasses(cls):
+            print(sc)
             try:
-                logger.info("Updating %s", sc)
-                logger.info("Before update: %s items", sc.objects.count())
-                sc.update_from_flex(truncate=truncate)
-                logger.info("Post update: %s items", sc.objects.count())
+                if truncate:
+                    yield truncate_sql(sc)
+                yield upsert_sql(sc)
             except Exception as E:
                 print(E)
 
