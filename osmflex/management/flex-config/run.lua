@@ -1,8 +1,10 @@
 -- Loads the `conf` var from layerset INI file
 require "layerset"
 
-
-require "style.pgosm-meta"
+local skip_meta = os.getenv("SKIP_META")
+if not skip_meta then
+    require "style.pgosm-meta"
+end
 
 
 if conf['layerset']['amenity'] then
@@ -89,4 +91,3 @@ if conf['layerset']['water'] then
     print('Including water')
     require "style.water"
 end
-
