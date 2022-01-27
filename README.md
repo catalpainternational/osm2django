@@ -36,6 +36,12 @@ Proj [API 4] Rel. 6.3.1, February 10th, 2020
 Lua 5.3.3
 ```
 
+## Building
+
+poetry version patch
+poetry build
+poetry publish
+
 ## Demo
 
 
