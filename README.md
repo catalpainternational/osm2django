@@ -14,13 +14,16 @@ This is a Django interface to models imported with `osm2pgsql`  and the `pgosm-f
 
 ### Prerequisites
 
-Requires [osm2pgsql](https://github.com/openstreetmap/osm2pgsql)
-Build it from source as per [the docs](https://github.com/openstreetmap/osm2pgsql/blob/master/README.md#building)
+Requires:
+ - [osm2pgsql](https://github.com/openstreetmap/osm2pgsql), Build it from source as per [the docs](https://github.com/openstreetmap/osm2pgsql/blob/master/README.md#building)
+ - [luarocks](https://luarocks.org/) can be installed from source or apt
+ - luarocks: inifile via `sudo luarocks install inifile`
+ - luarocks: luasql-postgres `sudo luarocks install luasql-postgres PGSQL_INCDIR=/usr/include/postgresql/`
 
-Requires pgosm-flex
+There is a copy of the flex-config dir in this repo, so you do not need to clone them but the lua files are sourced from:
 
-The original repo is [rustprooflabs/pgosm-flex](https://github.com/rustprooflabs/pgosm-flex)
-A fork in [joshbrooks/pgosm-flex](https://github.com/joshbrooks/pgosm-flex) added airports (for now)
+The original repo [rustprooflabs/pgosm-flex](https://github.com/rustprooflabs/pgosm-flex)
+A fork in [joshbrooks/pgosm-flex](https://github.com/joshbrooks/pgosm-flex) added airports (for now) (PR submitted)
 
 `osm2pgsql --version`
 
@@ -32,6 +35,10 @@ Libosmium 2.17.3
 Proj [API 4] Rel. 6.3.1, February 10th, 2020
 Lua 5.3.3
 ```
+
+## Demo
+
+
 
 ## Constants
 
@@ -71,7 +78,7 @@ export IMPORT_PBF="/media/josh/blackgate/osm/asia/east-timor-latest.osm.pbf"
 # Clearly that won't work outside of here
 
 # cd to the repo
-cd path_to_flex_repo/flex-config
+cd path_to_repo/flex-config
 # Run the import command
 
 osm2pgsql \
