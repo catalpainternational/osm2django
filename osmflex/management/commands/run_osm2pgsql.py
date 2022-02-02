@@ -57,5 +57,11 @@ class Command(BaseCommand):
         # hence the join
 
         self.stdout.write(f"Running Import of {options['osmfile']}")
-        subprocess.run((" ").join(args), env={**env}, shell=True)
-        self.stdout.write(self.style.SUCCESS(f"Running Import of {options['osmfile']} complete"))
+        run = subprocess.run((" ").join(args), env={**env}, shell=True, capture_output=True)
+        try:
+            run.check_returncode()
+        except subprocess.CalledProcessError:
+            self.stdout.write(self.style.ERROR(f"Running Import of {options['osmfile']} failed"))
+            self.stdout.write(self.style.ERROR(run.stderr.decode()))
+        else:
+            self.stdout.write(self.style.SUCCESS(f"Running Import of {options['osmfile']} complete"))
