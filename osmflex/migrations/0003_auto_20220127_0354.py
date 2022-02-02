@@ -9,4 +9,4 @@ class Migration(migrations.Migration):
         ("osmflex", "0002_remove_roadmajor_access_remove_roadmajor_oneway_and_more"),
     ]
 
-    operations = [migrations.RunSQL("CREATE SCHEMA osm;")]
+    operations = [migrations.RunSQL("CREATE SCHEMA osm;", reverse_sql="DROP SCHEMA osm CASCADE;")]
