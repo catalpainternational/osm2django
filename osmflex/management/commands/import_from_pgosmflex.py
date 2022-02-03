@@ -1,7 +1,10 @@
-from django.core.management.base import BaseCommand
-from django.db import connection, transaction
+from typing import Generator, Iterable
 
-from osmflex.models import Osm
+from django.core.management.base import BaseCommand
+from django.db import connection, models, transaction
+
+from osmflex.models import Osm, Tags, Unitable
+from osmflex.utils import truncate_sql, upsert_sql
 
 
 class Command(BaseCommand):
@@ -9,19 +12,43 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--truncate", action="store_true", help="Truncate current table data")
+        parser.add_argument("--unitable", action="store_true", help="Include the 'unitable' table")
 
     def handle(self, *args, **options):
-        @transaction.atomic()
-        def __do():
-            with connection.cursor() as c:
-                for query in Osm.update_all_from_flex(truncate=options["truncate"]):
-                    if options["verbosity"] > 0:
-                        self.stdout.write(self.style.SUCCESS("Importing:"))
-                        self.stdout.write(self.style.SUCCESS(query.as_string(c.cursor)))
-                    try:
-                        c.execute(query)
-                    except:  # noqa: E722
-                        self.stdout.write(self.style.ERROR("Failed to run SQL"))
-                        raise
+        def update_all_from_flex(truncate: bool = False, unitable: bool = False) -> Generator[str, None, None]:
+            """
+            Generate import SQL for all tables. This executes an "upsert" from the parallel tables in
+            the "osm" schema.
+            """
 
-        __do()
+            def get_all_subclasses(cls) -> Iterable[models.Model]:
+                subs = set()  # type: Iterable[models.Model]
+                for sc in cls.__subclasses__():
+                    if not sc._meta.abstract:
+                        subs.add(sc)
+                    subs.update(get_all_subclasses(sc))
+                return subs
+
+            for sc in get_all_subclasses(Osm):
+                if truncate:
+                    self.stdout.write(self.style.WARNING(f"Truncating {sc._meta.db_table}"))
+                    yield truncate_sql(sc)
+                self.stdout.write(self.style.SUCCESS(f"Importing data to {sc}"))
+                yield upsert_sql(sc)
+
+            # Also do the "tags" table
+            if truncate:
+                yield truncate_sql(Tags)
+            yield upsert_sql(Tags)
+
+            # And the "unitable", if specified
+            if unitable:
+                yield truncate_sql(Unitable)
+            yield upsert_sql(Unitable, exclude_fields=["id"])
+
+        with transaction.atomic():
+            with connection.cursor() as c:
+                for query in update_all_from_flex(truncate=options["truncate"], unitable=options["unitable"]):
+                    c.execute(query)
+                    if options["verbosity"] > 0:
+                        self.stdout.write(self.style.SUCCESS(query.as_string(c.cursor)))
