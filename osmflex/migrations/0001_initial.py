@@ -12,26 +12,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="PgosmFlex",
-            fields=[
-                ("id", models.BigIntegerField(primary_key=True, serialize=False)),
-                ("imported", models.DateTimeField()),
-                ("osm_date", models.DateField()),
-                ("default_date", models.BooleanField()),
-                ("region", models.TextField()),
-                ("pgosm_flex_version", models.TextField()),
-                ("srid", models.TextField()),
-                ("project_url", models.TextField()),
-                ("osm2pgsql_version", models.TextField()),
-                ("language", models.TextField()),
-                ("osm2pgsql_mode", models.TextField()),
-            ],
-            options={
-                "db_table": "osmflex_pgosm_flex",
-                "managed": False,
-            },
-        ),
-        migrations.CreateModel(
             name="AmenityLine",
             fields=[
                 ("osm_type", models.CharField(blank=True, max_length=1024, null=True)),
