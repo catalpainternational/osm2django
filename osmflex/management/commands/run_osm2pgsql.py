@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.db import connection
 
 
 def get_import_command(osmfile: str) -> Tuple[List[str], Dict]:
@@ -44,7 +45,7 @@ def get_import_command(osmfile: str) -> Tuple[List[str], Dict]:
 
 
 class Command(BaseCommand):
-    help = "Import data to the staging, 'osm' schema"
+    help = "Import data to the staging, 'osm' schema. Note that this requires a writable osm schema to be present."
 
     def add_arguments(self, parser):
         parser.add_argument("osmfile", type=str, help="Path to the OSM protobuf file to import")
@@ -55,8 +56,19 @@ class Command(BaseCommand):
         args, env = get_import_command(options["osmfile"])
         # The list version of subprocess.run does not work with osm2pgsql
         # hence the join
+        self.stdout.write(self.style.SUCCESS("Creating the `osm` schema"))
+        with connection.cursor() as c:
+            try:
+                c.execute("CREATE SCHEMA IF NOT EXISTS osm;")
+            except Exception as E:  # noqa: F841
+                # TODO: Explain to user what to do
+                # This may occur when a user does not have permission
+                # Run as a user with permission to create a schema
+                # with "GRANT CREATE ON database {database} TO {user};"
+                raise
 
-        self.stdout.write(f"Running Import of {options['osmfile']}")
+        self.stdout.write(self.style.SUCCESS(f"Running Import of {options['osmfile']}"))
+        self.stdout.write(self.style.SUCCESS("This may take a few minutes..."))
         run = subprocess.run((" ").join(args), env={**env}, shell=True, capture_output=True)
         try:
             run.check_returncode()
@@ -65,3 +77,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(run.stderr.decode()))
         else:
             self.stdout.write(self.style.SUCCESS(f"Running Import of {options['osmfile']} complete"))
+            self.stdout.write(
+                self.style.SUCCESS("To insert/update the Django tables, please run `import_from_pgosmflex`")
+            )
+            self.stdout.write(self.style.SUCCESS("You can drop the osm schema after that command"))

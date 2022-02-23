@@ -4,6 +4,51 @@ Import OSM data to Django
 
 OSM :heart: Django
 
+```
+(env) josh@carbonite:~/github/catalpainternational/openly_dird$ ./manage.py run_osm2pgsql ~/Downloads/papua-new-guinea-latest.osm.pbf 
+Creating the `osm` schema
+Running Import of /home/josh/Downloads/papua-new-guinea-latest.osm.pbf
+This may take a few minutes...
+Running Import of /home/josh/Downloads/papua-new-guinea-latest.osm.pbf complete
+To insert/update the Django tables, please run `import_from_pgosmflex`
+You can drop the osm schema after that command
+(env) josh@carbonite:~/github/catalpainternational/openly_dird$ ./manage.py import_from_pgosmflex
+Importing data to osmflex_waterline
+
+    INSERT INTO "osmflex_waterline"
+        ("osm_id","osm_type","name","geom","layer","tunnel","bridge","boat","osm_subtype")
+    SELECT "osm_id","osm_type","name","geom","layer","tunnel","bridge","boat","osm_subtype" FROM "osm"."water_line"
+    ON CONFLICT
+        ON CONSTRAINT "osmflex_waterline_pkey"
+        DO UPDATE SET
+        "osm_id" = Excluded."osm_id","osm_type" = Excluded."osm_type","name" = Excluded."name","geom" = Excluded."geom","layer" = Excluded."layer","tunnel" = Excluded."tunnel","bridge" = Excluded."bridge","boat" = Excluded."boat","osm_subtype" = Excluded."osm_subtype"
+        WHERE "osmflex_waterline".osm_id = Excluded.osm_id
+    
+Importing data to osmflex_roadpoint
+```
+    INSERT INTO "osmflex_roadpoint"
+        ("osm_id","osm_type","name","geom","ref","maxspeed","layer","tunnel","bridge","oneway","access")
+    SELECT "osm_id","osm_type","name","geom","ref","maxspeed","layer","tunnel","bridge","oneway","access" FROM "osm"."road_point"
+    ON CONFLICT
+        ON CONSTRAINT "osmflex_roadpoint_pkey"
+        DO UPDATE SET
+        "osm_id" = Excluded."osm_id","osm_type" = Excluded."osm_type","name" = Excluded."name","geom" = Excluded."geom","ref" = Excluded."ref","maxspeed" = Excluded."maxspeed","layer" = Excluded."layer","tunnel" = Excluded."tunnel","bridge" = Excluded."bridge","oneway" = Excluded."oneway","access" = Excluded."access"
+        WHERE "osmflex_roadpoint".osm_id = Excluded.osm_id
+    
+... (other tables)
+```
+
+```ipython
+In [1]: from osmflex import models
+
+In [2]: models.AmenityPoint.objects.all()
+Out[2]: <QuerySet [<AmenityPoint: vending_machine(8106929355)>, <AmenityPoint: toilets(2932913055)>, <AmenityPoint: shower(2932913054)>, <AmenityPoint: drinking_water(2932913053)>, <AmenityPoint: Magesubu Cemetery(2932834661)>, <AmenityPoint: Gegela Cemetery(2932834660)>, <AmenityPoint: Watertank Simon & Elsi(2943488679)>, <AmenityPoint: Teachers Watertank(2943486625)>, <AmenityPoint: Tubetube School(2540118236)>, <AmenityPoint: Teacher Watertank(2932988387)>, <AmenityPoint: toilets(2585430641)>, <AmenityPoint: toilets(2574655335)>, <AmenityPoint: Dawasi Cemetery(2943488655)>, <AmenityPoint: Pastors Watertank(2943488638)>, <AmenityPoint: (old)(2943488670)>, <AmenityPoint: drinking_water(2943488669)>, <AmenityPoint: fountain(2585422282)>, <AmenityPoint: toilets(2943488667)>, <AmenityPoint: shower(2943488668)>, <AmenityPoint: Watertank Lucia & David(2932818615)>, '...(remaining elements truncated)...']>
+
+In [3]: 
+```
+
+
+
 ## The Why
 
 OpenStreetmap is a superb resource. Django is a superb ORM. But they have different views of data. Recent changes to the `osm2pgsql` tool, in particular the ability to flexibly define output, make it a lot easier to have Django-compatible imports
@@ -16,14 +61,8 @@ This is a Django interface to models imported with `osm2pgsql`  and the `pgosm-f
 
 Requires:
  - [osm2pgsql](https://github.com/openstreetmap/osm2pgsql), Build it from source as per [the docs](https://github.com/openstreetmap/osm2pgsql/blob/master/README.md#building)
- - [luarocks](https://luarocks.org/) can be installed from source or apt
- - luarocks: inifile via `sudo luarocks install inifile`
- - luarocks: luasql-postgres `sudo luarocks install luasql-postgres PGSQL_INCDIR=/usr/include/postgresql/`
 
-There is a copy of the flex-config dir in this repo, so you do not need to clone them but the lua files are sourced from:
-
-The original repo [rustprooflabs/pgosm-flex](https://github.com/rustprooflabs/pgosm-flex)
-A fork in [joshbrooks/pgosm-flex](https://github.com/joshbrooks/pgosm-flex) added airports (for now) (PR submitted)
+There is a copy of the flex-config dir in this repo. The `lua` files are sourced from [rustprooflabs/pgosm-flex](https://github.com/rustprooflabs/pgosm-flex)
 
 `osm2pgsql --version`
 
