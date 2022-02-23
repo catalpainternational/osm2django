@@ -9,7 +9,7 @@ include = '\.pyi?$'
 
 [tool.poetry]
 name = "osmflex"
-version = "0.1.6"
+version = "0.1.7"
 description = ""
 authors = ["Joshua Brooks <josh.vdbroek@gmail.com>"]
 license = "GPLv3"
