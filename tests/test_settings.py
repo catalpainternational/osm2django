@@ -63,7 +63,14 @@ TEMPLATES = [
 WSGI_APPLICATION = "osmflex.wsgi.application"
 
 # Temporary:
-# docker run --rm -p 49155:5432 --name=djangostreetmap -e POSTGRES_PASSWORD=post1234 postgis/postgis:14-3.2 -c fsync=off -c shared_buffers=4096MB
+"""
+docker run --rm \
+    -p 49156:5432 \
+    --name=djangostreetmap \
+    -e POSTGRES_PASSWORD=post1234 \
+    postgis/postgis:14-3.2 \
+    -c fsync=off
+"""
 
 DATABASES = {
     "default": {
@@ -71,8 +78,8 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "post1234",
         "HOST": "localhost",
-        "PORT": "49155",
-        "NAME": "postgres",
+        "PORT": "49156",
+        "NAME": "osm2django",
     }
 }
 # Password validation
