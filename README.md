@@ -1,6 +1,12 @@
 # osm2django
 
-Import OSM data to Django
+## Installing
+
+Clone the repo and `poetry install`
+
+Or `pip install osmflex`
+
+## Import OSM data to Django
 
 OSM :heart: Django
 
