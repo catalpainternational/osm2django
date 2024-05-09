@@ -6,7 +6,7 @@ from osmflex import models
 # Register your models here.
 
 
-class OsmFlexAdmin(admin.GeoModelAdmin):  # type: ignore
+class OsmFlexAdmin(admin.GISModelAdmin):  # type: ignore
     search_fields = ("name",)
     list_display = ("osm_id", "osm_type", "name")
     list_filter = ("osm_type",)
@@ -211,7 +211,7 @@ class TrafficPolygonAdmin(OsmFlexAdmin):
 
 
 @admin.register(models.Unitable)
-class UnitableAdmin(admin.GeoModelAdmin):  # type: ignore
+class UnitableAdmin(admin.GISModelAdmin):  # type: ignore
     ...
 
 
