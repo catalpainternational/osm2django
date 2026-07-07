@@ -1,14 +1,13 @@
 import os
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
 
 
-def get_import_command(osmfile: str) -> Tuple[List[str], Dict]:
+def get_import_command(osmfile: str) -> tuple[list[str], dict]:
     """
     Returns a command string and env vars for `osm2pgsql`
     """
@@ -77,7 +76,5 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(run.stderr.decode()))
         else:
             self.stdout.write(self.style.SUCCESS(f"Running Import of {options['osmfile']} complete"))
-            self.stdout.write(
-                self.style.SUCCESS("To insert/update the Django tables, please run `import_from_pgosmflex`")
-            )
+            self.stdout.write(self.style.SUCCESS("To insert/update the Django tables, please run `import_from_pgosmflex`"))
             self.stdout.write(self.style.SUCCESS("You can drop the osm schema after that command"))
