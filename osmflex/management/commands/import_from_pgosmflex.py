@@ -1,4 +1,4 @@
-from typing import Generator, Iterable, Set
+from collections.abc import Generator, Iterable
 
 from django.core.management.base import BaseCommand
 from django.db import connection, models, transaction
@@ -21,8 +21,8 @@ class Command(BaseCommand):
             the "osm" schema.
             """
 
-            def get_all_subclasses(cls) -> Iterable[models.Model]:
-                subs = set()  # type: Set[models.Model]
+            def get_all_subclasses(cls) -> Iterable[type[models.Model]]:
+                subs: set[type[models.Model]] = set()
                 for sc in cls.__subclasses__():
                     if not sc._meta.abstract:
                         subs.add(sc)

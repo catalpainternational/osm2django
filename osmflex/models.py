@@ -21,7 +21,6 @@ class OsmTagged(models.Manager):
 
 
 class Osm(models.Model):
-
     osm_id = models.BigIntegerField(primary_key=True)
     osm_type = models.CharField(max_length=1024, null=True, blank=True)
     name = models.CharField(max_length=1024, null=True, blank=True)
@@ -78,7 +77,6 @@ class OsmPolygon(Osm):
 
 
 class Amenity(models.Model):
-
     housenumber = models.CharField(max_length=512, null=True, blank=True)
     street = models.CharField(max_length=512, null=True, blank=True)
     city = models.CharField(max_length=512, null=True, blank=True)
@@ -159,7 +157,6 @@ class IndoorLine(OsmLine, Indoor):
 
 
 class Infrastructure(models.Model):
-
     ele = models.IntegerField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     operator = models.CharField(max_length=1024, null=True, blank=True)
@@ -209,7 +206,6 @@ class LeisurePolygon(OsmPolygon, Leisure):
 
 
 class Natural(models.Model):
-
     ele = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -229,7 +225,6 @@ class NaturalPolygon(OsmPolygon, Natural):
 
 
 class Place(models.Model):
-
     boundary = models.CharField(max_length=1024, null=True, blank=True)
     admin_level = models.IntegerField(null=True, blank=True)
 
@@ -271,7 +266,6 @@ class PoiPolygon(OsmPolygon, Poi):
 
 
 class PublicTransport(WheelchairAccess):
-
     public_transport = models.TextField(max_length=1024, null=True, blank=True)
     layer = models.IntegerField(null=True, blank=True)
     ref = models.TextField(max_length=1024, null=True, blank=True)
@@ -338,7 +332,6 @@ class RoadMajor(OsmLine, Road):
 
 
 class Shop(Amenity, WheelchairAccess):
-
     operator = models.CharField(max_length=1024, null=True, blank=True)
     brand = models.CharField(max_length=1024, null=True, blank=True)
     website = models.CharField(max_length=1024, null=True, blank=True)
@@ -377,7 +370,6 @@ class TrafficPolygon(OsmPolygon, Traffic):
 
 
 class Unitable(models.Model):
-
     """
     Single table that can take any OSM object and any geometry.
 
@@ -405,7 +397,6 @@ class Unitable(models.Model):
 
 
 class Water(models.Model):
-
     layer = models.IntegerField()
     tunnel = models.CharField(max_length=1024, null=True, blank=True)
     bridge = models.CharField(max_length=1024, null=True, blank=True)

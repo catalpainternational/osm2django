@@ -9,12 +9,11 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
-from typing import List
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-f_bccd*huje&4i(pip=vljq)ogt#l@5td2y!(m)pk!5($!!&vp"
 DEBUG = True
-ALLOWED_HOSTS = []  # type: List[str]
+ALLOWED_HOSTS: list[str] = []
 
 
 # Application definition
@@ -78,8 +77,8 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "post1234",
         "HOST": "localhost",
-        "PORT": "49156",
-        "NAME": "osm2django",
+        "PORT": "49155",
+        "NAME": "postgres",
     }
 }
 # Password validation

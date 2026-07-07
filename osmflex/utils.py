@@ -1,10 +1,8 @@
-from typing import List
-
 from django.db import models
 from psycopg2 import sql
 
 
-def truncate_sql(model: models.Model):
+def truncate_sql(model: type[models.Model]):
     """
     SQL to truncate this table
     BE CAREFUL!
@@ -13,7 +11,7 @@ def truncate_sql(model: models.Model):
     return statement
 
 
-def upsert_sql(model: models.Model, exclude_fields: List[str] = None):
+def upsert_sql(model: type[models.Model], exclude_fields: list[str] | None = None):
     """
     Generates an UPSERT (update-on-conflict) statement
     to import from the "osm" schema which is the default
@@ -39,9 +37,7 @@ def upsert_sql(model: models.Model, exclude_fields: List[str] = None):
     )
 
     # This is the update clause...
-    update_clause = sql.SQL("DO UPDATE SET\n\t") + sql.SQL(",").join(
-        [sql.Identifier(f) + sql.SQL(" = Excluded.") + sql.Identifier(f) for f in field_names]
-    )
+    update_clause = sql.SQL("DO UPDATE SET\n\t") + sql.SQL(",").join([sql.Identifier(f) + sql.SQL(" = Excluded.") + sql.Identifier(f) for f in field_names])
 
     statement = sql.SQL(
         """
