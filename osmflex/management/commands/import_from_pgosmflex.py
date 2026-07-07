@@ -2,6 +2,7 @@ from collections.abc import Generator, Iterable
 
 from django.core.management.base import BaseCommand
 from django.db import connection, models, transaction
+from psycopg2 import sql
 
 from osmflex.models import Osm, Tags, Unitable
 from osmflex.utils import truncate_sql, upsert_sql
@@ -15,7 +16,7 @@ class Command(BaseCommand):
         parser.add_argument("--unitable", action="store_true", help="Include the 'unitable' table")
 
     def handle(self, *args, **options):
-        def update_all_from_flex(truncate: bool = False, unitable: bool = False) -> Generator[str, None, None]:
+        def update_all_from_flex(truncate: bool = False, unitable: bool = False) -> Generator[sql.Composed, None, None]:
             """
             Generate import SQL for all tables. This executes an "upsert" from the parallel tables in
             the "osm" schema.
@@ -38,14 +39,14 @@ class Command(BaseCommand):
 
             # Also do the "tags" table
             if truncate:
-                yield truncate_sql(Tags)  # type: ignore
-            yield upsert_sql(Tags)  # type: ignore
+                yield truncate_sql(Tags)
+            yield upsert_sql(Tags)
 
             # And the "unitable", if specified
             if unitable:
                 if truncate:
-                    yield truncate_sql(Unitable)  # type: ignore
-                yield upsert_sql(Unitable, exclude_fields=["id"])  # type: ignore
+                    yield truncate_sql(Unitable)
+                yield upsert_sql(Unitable, exclude_fields=["id"])
 
         with transaction.atomic():
             with connection.cursor() as c:
