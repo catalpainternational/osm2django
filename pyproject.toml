@@ -1,6 +1,6 @@
 [project]
 name = "osmflex"
-version = "0.3.0"
+version = "0.3.1"
 description = "Import OpenStreetMap data into Django using osm2pgsql (flex output)"
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
@@ -40,7 +40,7 @@ packages = ["osmflex"]
 [tool.ruff]
 line-length = 180
 target-version = "py311"
-exclude = ["migrations", ".venv", "env"]
+exclude = ["migrations", ".venv", "env", "examples"]
 
 [tool.ruff.lint]
 select = [
@@ -81,3 +81,8 @@ addopts = "--reuse-db"
 [tool.coverage.run]
 source = ["osmflex"]
 omit = ["*/migrations/*", "*/tests.py", "tests/*"]
+
+[tool.coverage.report]
+skip_covered = false
+show_missing = true
+fail_under = 60
